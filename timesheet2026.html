@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IPRoyal Team Timesheet 2026</title>
+<style>
+:root{
+  --navy:#0d1b2e;--navy2:#112038;--navy3:#1a2d4a;--navy4:#0a1525;
+  --cyan:#00d4ff;--cyan2:#00b8d9;--white:#fff;--gray:#8aa0b8;
+  --red:#ff4d6a;--green:#00e5a0;--yellow:#ffd166;--orange:#ff9f43;
+  --border:rgba(0,212,255,0.18);--purple:#a78bfa;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--navy);color:var(--white);font-family:'Segoe UI',Arial,sans-serif;font-size:12px;min-height:100vh;}
+
+#login-screen{position:fixed;inset:0;background:var(--navy4);display:flex;align-items:center;justify-content:center;z-index:1000;}
+.login-card{background:var(--navy3);border:1px solid var(--border);border-radius:12px;padding:36px 40px;width:340px;text-align:center;}
+.login-card h2{color:var(--cyan);font-size:18px;letter-spacing:2px;margin-bottom:4px;}
+.login-card p{color:var(--gray);font-size:11px;margin-bottom:22px;line-height:1.6;}
+.login-card select{width:100%;padding:10px 12px;border-radius:6px;border:1px solid var(--border);background:var(--navy2);color:var(--white);font-size:13px;margin-bottom:12px;outline:none;}
+.login-card select:focus{border-color:var(--cyan);}
+.login-btn{width:100%;padding:10px;border-radius:6px;border:none;background:var(--cyan);color:var(--navy);font-weight:700;font-size:14px;cursor:pointer;transition:.2s;}
+.login-btn:hover{background:var(--cyan2);}
+
+.app-header{background:linear-gradient(135deg,#0a1525,#1a2d4a);border-bottom:2px solid var(--cyan);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.app-header h1{font-size:17px;color:var(--cyan);letter-spacing:2px;text-transform:uppercase;font-weight:700;}
+.header-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.time-block{background:var(--navy3);border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:11px;line-height:1.6;}
+.time-block .lbl{color:var(--gray);font-size:10px;}
+.time-block .val{color:var(--cyan);font-weight:700;}
+.hdr-btn{padding:5px 13px;border-radius:14px;font-weight:700;font-size:11px;cursor:pointer;border:none;background:var(--cyan);color:var(--navy);transition:.2s;}
+.hdr-btn:hover{background:var(--cyan2);}
+.edit-badge{padding:3px 8px;border-radius:10px;font-size:10px;font-weight:700;}
+.badge-editor{background:rgba(0,212,255,0.15);color:var(--cyan);border:1px solid var(--border);}
+.badge-viewer{background:rgba(0,229,160,0.1);color:var(--green);border:1px solid rgba(0,229,160,0.2);}
+
+.shift-banner{display:flex;border-bottom:1px solid var(--border);}
+.shift-item{flex:1;padding:7px 10px;text-align:center;font-size:11px;border-right:1px solid var(--border);}
+.shift-item:last-child{border-right:none;}
+.s-team{font-weight:700;font-size:12px;}.s-time{color:var(--gray);font-size:10px;margin-top:2px;}
+.jay-shift{background:rgba(0,212,255,0.05);}
+.ann-shift{background:rgba(167,139,250,0.05);}
+.ray-shift{background:rgba(255,159,67,0.05);}
+.jay-col{color:var(--cyan)!important;}
+.ann-col{color:var(--purple)!important;}
+.ray-col{color:var(--orange)!important;}
+
+.year-bar{display:flex;align-items:center;gap:6px;padding:8px 16px;background:var(--navy4);border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.year-label{color:var(--yellow);font-weight:700;font-size:13px;margin-right:4px;}
+.nav-bar{display:flex;gap:4px;padding:8px 16px;background:var(--navy4);border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.nav-btn{padding:6px 14px;border-radius:5px;border:1px solid var(--border);background:var(--navy3);color:var(--gray);cursor:pointer;font-size:12px;font-weight:600;transition:all .2s;white-space:nowrap;}
+.nav-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+.nav-btn.active{background:var(--cyan);color:var(--navy);border-color:var(--cyan);}
+
+.month-bar{display:flex;gap:3px;padding:7px 16px;background:var(--navy2);border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.month-btn{padding:4px 10px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--gray);cursor:pointer;font-size:11px;font-weight:600;transition:all .2s;}
+.month-btn:hover{color:var(--cyan);}
+.month-btn.active{background:var(--navy3);color:var(--cyan);border-color:var(--cyan);}
+.month-btn.past{opacity:0.5;}
+.month-btn.current{border-color:var(--yellow);color:var(--yellow);}
+
+.content{padding:14px;}
+.panel{display:none;}.panel.active{display:block;}
+.month-panel{display:none;}.month-panel.active{display:block;}
+
+.section-title{display:inline-flex;align-items:center;color:var(--navy);font-weight:700;font-size:11px;padding:5px 12px;border-radius:4px 4px 0 0;letter-spacing:1px;text-transform:uppercase;}
+.section-wrap{margin-bottom:18px;}
+.overflow-x{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:11px;}
+th{background:var(--navy3);color:var(--cyan);border:1px solid var(--border);padding:5px 3px;text-align:center;font-weight:600;white-space:nowrap;}
+td{border:1px solid var(--border);padding:4px 3px;text-align:center;color:var(--white);background:var(--navy2);white-space:nowrap;}
+tr:hover td{background:rgba(0,212,255,0.04);}
+.td-name{text-align:left;font-weight:600;padding-left:7px;}
+.td-date{background:var(--cyan)!important;color:var(--navy)!important;font-weight:700;}
+.td-sun{background:rgba(255,255,255,0.015)!important;}
+.td-sat{background:rgba(255,255,255,0.015)!important;}
+.td-rd{color:var(--gray);font-style:italic;font-size:10px;}
+.td-tb{color:var(--cyan2);font-style:italic;font-size:10px;}
+.td-md{color:var(--red);font-style:italic;font-size:10px;}
+.td-ns{color:var(--red);font-weight:700;font-size:10px;}
+.td-ot{color:var(--orange);font-weight:700;font-size:10px;}
+.td-total{font-weight:700;color:var(--yellow);background:var(--navy3)!important;}
+.td-total-row td{background:var(--navy3)!important;color:var(--cyan);font-weight:700;}
+.td-ytd{background:#0f2a1a!important;color:var(--green)!important;font-weight:700;}
+.td-today{background:rgba(255,209,102,0.12)!important;outline:1px solid var(--yellow);}
+.editable{cursor:pointer;}
+.editable:hover{background:rgba(0,212,255,0.1)!important;outline:1px dashed var(--cyan);}
+input.cell-input{width:44px;padding:2px;border-radius:3px;border:1px solid var(--cyan);background:var(--navy4);color:var(--white);font-size:11px;text-align:center;outline:none;}
+.editable-text{cursor:pointer;}
+.editable-text:hover{background:rgba(0,212,255,0.08)!important;outline:1px dashed var(--cyan);}
+textarea.cell-ta{width:100%;min-height:55px;padding:3px;border-radius:3px;border:1px solid var(--cyan);background:var(--navy4);color:var(--white);font-size:11px;resize:vertical;outline:none;}
+.sub-label{display:block;color:var(--navy);font-weight:700;font-size:11px;padding:4px 10px;border-radius:3px 3px 0 0;text-transform:uppercase;letter-spacing:.6px;}
+.sub-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px;}
+@media(max-width:760px){.sub-grid{grid-template-columns:1fr;}}
+.lost-total td{background:var(--navy3)!important;color:var(--yellow)!important;font-weight:700;}
+.done-cell{color:var(--green);font-weight:600;}
+.avail-cell{color:var(--yellow);font-weight:600;}
+.meeting-td{text-align:left;vertical-align:top;line-height:1.6;padding:7px;}
+.all-att{color:var(--green);font-weight:700;text-align:center!important;}
+.notes-box{border:1px solid var(--border);border-radius:0 4px 4px 4px;background:var(--navy3);padding:7px 12px;color:var(--gray);font-size:11px;line-height:1.7;}
+.notes-box span{color:var(--cyan);font-weight:600;}
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:18px;}
+.summary-card{background:var(--navy3);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center;}
+.summary-card .val{font-size:22px;font-weight:700;color:var(--cyan);}
+.summary-card .lbl{font-size:10px;color:var(--gray);margin-top:3px;}
+.member-pill{display:inline-block;background:var(--navy3);border:1px solid var(--border);border-radius:12px;padding:2px 9px;margin:2px;font-size:11px;}
+
+/* TOAST & STATUS */
+.save-toast{position:fixed;bottom:18px;right:18px;background:var(--green);color:var(--navy);padding:7px 16px;border-radius:20px;font-weight:700;font-size:12px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:9999;}
+.save-toast.show{opacity:1;}
+.sync-bar{position:fixed;bottom:0;left:0;right:0;background:var(--navy3);border-top:1px solid var(--border);padding:5px 16px;display:flex;align-items:center;gap:10px;font-size:11px;z-index:998;}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:var(--gray);flex-shrink:0;transition:background .3s;}
+.sync-dot.synced{background:var(--green);}
+.sync-dot.syncing{background:var(--yellow);animation:pulse 1s infinite;}
+.sync-dot.error{background:var(--red);}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+.sync-text{color:var(--gray);}
+
+/* LOADING OVERLAY */
+#load-overlay{position:fixed;inset:0;background:var(--navy4);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:500;gap:14px;}
+#load-overlay.hidden{display:none;}
+.spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--cyan);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.load-text{color:var(--gray);font-size:13px;}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="load-overlay">
+  <div class="spinner"></div>
+  <div class="load-text" id="load-text">Connecting to Google Sheets…</div>
+</div>
+
+<!-- LOGIN -->
+<div id="login-screen" style="display:none">
+  <div class="login-card">
+    <h2>🏆 IPROYAL</h2>
+    <p>Support Team Timesheet 2026<br>Select your name to continue</p>
+    <select id="login-user">
+      <option value="">— Select your name —</option>
+      <optgroup label="✏️ Editors">
+        <option value="Kazys|editor">Kazys (Head)</option>
+        <option value="Jay|editor">Jay (Team Lead)</option>
+        <option value="Ann|editor">Ann (Team Lead)</option>
+        <option value="Ray|editor">Ray (Team Lead)</option>
+      </optgroup>
+      <optgroup label="👁 View Only">
+        <option value="Jose|viewer">Jose</option>
+        <option value="Paul|viewer">Paul</option>
+        <option value="Danica|viewer">Danica</option>
+        <option value="Christian|viewer">Christian</option>
+        <option value="May|viewer">May</option>
+        <option value="Jade|viewer">Jade</option>
+        <option value="Pearl|viewer">Pearl</option>
+        <option value="Cielo|viewer">Cielo</option>
+        <option value="Angelo|viewer">Angelo</option>
+        <option value="Jhasmine|viewer">Jhasmine</option>
+        <option value="Princess|viewer">Princess</option>
+        <option value="John|viewer">John</option>
+        <option value="Kevin|viewer">Kevin</option>
+        <option value="Zia|viewer">Zia</option>
+        <option value="Joana|viewer">Joana</option>
+      </optgroup>
+    </select>
+    <button class="login-btn" onclick="doLogin()">Enter Timesheet</button>
+  </div>
+</div>
+
+<div class="save-toast" id="save-toast">✓ Saved to Google Sheets</div>
+
+<!-- APP -->
+<div id="app" style="display:none">
+  <div class="app-header">
+    <div>
+      <h1>📊 IPRoyal Support Timesheet</h1>
+      <div style="color:var(--gray);font-size:10px;margin-top:2px;">24/7 Operations · 🇵🇭 Manila & 🇱🇹 Lithuania</div>
+    </div>
+    <div class="header-right">
+      <div class="time-block"><div class="lbl">🇵🇭 MNL (UTC+8)</div><div class="val" id="clock-mnl">--:--:--</div></div>
+      <div class="time-block"><div class="lbl">🇱🇹 Lithuania</div><div class="val" id="clock-lt">--:--:--</div></div>
+      <span class="edit-badge" id="role-badge"></span>
+      <button class="hdr-btn" onclick="logout()">Sign Out</button>
+    </div>
+  </div>
+
+  <div class="shift-banner">
+    <div class="shift-item jay-shift"><div class="s-team jay-col">☀️ Team Jay</div><div class="s-time">🇵🇭 08:00–16:00 &nbsp;|&nbsp; 🇱🇹 <span id="jay-lt">--</span></div></div>
+    <div class="shift-item ann-shift"><div class="s-team ann-col">🌆 Team Ann</div><div class="s-time">🇵🇭 16:00–00:00 &nbsp;|&nbsp; 🇱🇹 <span id="ann-lt">--</span></div></div>
+    <div class="shift-item ray-shift"><div class="s-team ray-col">🌙 Team Ray</div><div class="s-time">🇵🇭 00:00–08:00 &nbsp;|&nbsp; 🇱🇹 <span id="ray-lt">--</span></div></div>
+  </div>
+
+  <div class="year-bar">
+    <span class="year-label">📅 Year:</span>
+    <div id="year-buttons"></div>
+  </div>
+
+  <div class="nav-bar">
+    <button class="nav-btn active" onclick="showTeam('overview',this)">🏠 Overview</button>
+    <button class="nav-btn" onclick="showTeam('jay',this)">☀️ Team Jay</button>
+    <button class="nav-btn" onclick="showTeam('ann',this)">🌆 Team Ann</button>
+    <button class="nav-btn" onclick="showTeam('ray',this)">🌙 Team Ray</button>
+  </div>
+
+  <div id="panel-overview" class="panel active">
+    <div class="content">
+      <div class="summary-grid" id="overview-summary"></div>
+      <div class="section-wrap">
+        <div class="section-title" style="background:linear-gradient(90deg,var(--cyan),var(--cyan2))">🕐 Shift Reference</div>
+        <table style="margin-top:0">
+          <thead><tr><th>Team</th><th>Lead</th><th>🇵🇭 MNL</th><th>🇱🇹 Winter (UTC+2)</th><th>🇱🇹 Summer (UTC+3)</th></tr></thead>
+          <tbody>
+            <tr><td class="jay-col" style="font-weight:700">☀️ Team Jay</td><td>Jay</td><td style="color:var(--cyan)">08:00–16:00</td><td style="color:var(--yellow)">02:00–10:00</td><td style="color:var(--yellow)">03:00–11:00</td></tr>
+            <tr><td class="ann-col" style="font-weight:700">🌆 Team Ann</td><td>Ann</td><td style="color:var(--purple)">16:00–00:00</td><td style="color:var(--yellow)">10:00–18:00</td><td style="color:var(--yellow)">11:00–19:00</td></tr>
+            <tr><td class="ray-col" style="font-weight:700">🌙 Team Ray</td><td>Ray</td><td style="color:var(--orange)">00:00–08:00</td><td style="color:var(--yellow)">18:00–02:00†</td><td style="color:var(--yellow)">19:00–03:00†</td></tr>
+          </tbody>
+        </table>
+        <div class="notes-box" style="border-radius:0 0 4px 4px;"><span>LT DST:</span> UTC+3 last Sun of March → last Sun of October. UTC+2 rest of year. MNL always UTC+8. † = crosses midnight in LT.</div>
+      </div>
+      <div class="section-wrap">
+        <div class="section-title" style="background:linear-gradient(90deg,var(--cyan),var(--cyan2))">👥 Rosters</div>
+        <table style="margin-top:0">
+          <thead><tr><th>Team</th><th>Lead</th><th>Shift</th><th>Members</th></tr></thead>
+          <tbody>
+            <tr><td class="jay-col" style="font-weight:700">☀️ Jay</td><td>Jay</td><td>08:00–16:00</td><td style="text-align:left;padding:4px 8px"><span class="member-pill jay-col">Jay</span><span class="member-pill">Jose</span><span class="member-pill">Paul</span><span class="member-pill">Danica</span><span class="member-pill">Christian</span></td></tr>
+            <tr><td class="ann-col" style="font-weight:700">🌆 Ann</td><td>Ann</td><td>16:00–00:00</td><td style="text-align:left;padding:4px 8px"><span class="member-pill ann-col">Ann</span><span class="member-pill">May</span><span class="member-pill">Jade</span><span class="member-pill">Pearl</span><span class="member-pill">Cielo</span><span class="member-pill">Angelo</span><span class="member-pill">Jhasmine</span></td></tr>
+            <tr><td class="ray-col" style="font-weight:700">🌙 Ray</td><td>Ray</td><td>00:00–08:00</td><td style="text-align:left;padding:4px 8px"><span class="member-pill ray-col">Ray</span><span class="member-pill">Princess</span><span class="member-pill">John</span><span class="member-pill">Kevin</span><span class="member-pill">Zia</span><span class="member-pill">Joana</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="section-wrap">
+        <div class="section-title" style="background:linear-gradient(90deg,var(--cyan),var(--cyan2))">📅 Monthly Working Days</div>
+        <table style="margin-top:0" id="yr-tbl"></table>
+      </div>
+      <div class="notes-box"><span>Legend:</span> <span>RD</span>=Rest Day &nbsp;|&nbsp; <span>TB</span>=To Be Logged &nbsp;|&nbsp; <span>MD</span>=Missed Day &nbsp;|&nbsp; <span>NS</span>=No Show &nbsp;|&nbsp; <span>OT</span>=Overtime &nbsp;|&nbsp; Editors click any cell to update hours after shift.</div>
+    </div>
+  </div>
+
+  <div id="panel-jay" class="panel"><div class="month-bar" id="months-jay"></div><div class="content" id="content-jay"></div></div>
+  <div id="panel-ann" class="panel"><div class="month-bar" id="months-ann"></div><div class="content" id="content-ann"></div></div>
+  <div id="panel-ray" class="panel"><div class="month-bar" id="months-ray"></div><div class="content" id="content-ray"></div></div>
+</div>
+
+<!-- SYNC BAR -->
+<div class="sync-bar" id="sync-bar" style="display:none">
+  <div class="sync-dot" id="sync-dot"></div>
+  <span class="sync-text" id="sync-text">Connecting…</span>
+  <span style="color:var(--gray2);margin-left:auto;font-size:10px" id="sync-lastSaved"></span>
+</div>
+
+<script>
+// ─────────────────────────────────────────────────────────
+// GOOGLE SHEETS API ENDPOINT
+// ─────────────────────────────────────────────────────────
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwXMi7WGRjW_OktCCh1qRTpBx1Dh2JPpwfkw5ginMh13gTZrH8glugLRuTZVFojb45w/exec';
+
+// ─────────────────────────────────────────────────────────
+// CONFIG — add 2027 here next year:
+// ACTIVE_YEARS: [2026, 2027]
+// AVAILABLE_MONTHS: { 2026:[2..11], 2027:[0..11] }
+// ─────────────────────────────────────────────────────────
+const CONFIG = {
+  ACTIVE_YEARS: [2026],
+  AVAILABLE_MONTHS: { 2026: [2,3,4,5,6,7,8,9,10,11] }
+};
+
+const TEAMS = {
+  jay:{ label:'Team Jay', lead:'Jay', color:'var(--cyan)',   icon:'☀️', shift:'08:00–16:00 MNL', members:['Jay','Jose','Paul','Danica','Christian'] },
+  ann:{ label:'Team Ann', lead:'Ann', color:'var(--purple)', icon:'🌆', shift:'16:00–00:00 MNL', members:['Ann','May','Jade','Pearl','Cielo','Angelo','Jhasmine'] },
+  ray:{ label:'Team Ray', lead:'Ray', color:'var(--orange)', icon:'🌙', shift:'00:00–08:00 MNL', members:['Ray','Princess','John','Kevin','Zia','Joana'] }
+};
+
+const MONTHS_FULL  = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const DLBL = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const GRAD = { jay:'var(--cyan),var(--cyan2)', ann:'#7c3aed,#a78bfa', ray:'#c05621,var(--orange)' };
+const LCOL = { jay:'#00b8d9', ann:'#7c3aed', ray:'#c05621' };
+
+let currentUser=null, isEditor=false, activeYear=2026;
+const cellCache = {};
+let saveQueue = {}, saveTimer = null, isSynced = false;
+
+// ─── GOOGLE SHEETS ────────────────────────────────────────
+async function sheetGet(){
+  try{
+    setSyncStatus('syncing','Loading from Google Sheets…');
+    const r = await fetch(SHEET_URL + '?t=' + Date.now());
+    const data = await r.json();
+    if(data && typeof data === 'object' && !data.status){
+      Object.assign(cellCache, data);
+    }
+    setSyncStatus('synced','Synced with Google Sheets');
+    return true;
+  }catch(e){
+    setSyncStatus('error','Could not reach Google Sheets — working offline');
+    return false;
+  }
+}
+
+async function sheetSet(key, value){
+  try{
+    await fetch(SHEET_URL, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain'},
+      body: JSON.stringify({key, value})
+    });
+    return true;
+  }catch(e){
+    return false;
+  }
+}
+
+async function flushQueue(){
+  const keys = Object.keys(saveQueue);
+  if(!keys.length) return;
+  setSyncStatus('syncing', `Saving ${keys.length} cell(s)…`);
+  const promises = keys.map(k => sheetSet(k, saveQueue[k]));
+  await Promise.all(promises);
+  saveQueue = {};
+  setSyncStatus('synced','All changes saved to Google Sheets');
+  showToast('✓ Saved to Google Sheets');
+  const now = new Date();
+  document.getElementById('sync-lastSaved').textContent =
+    'Last saved: ' + now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+}
+
+function saveCell(k, v){
+  cellCache[k] = v;
+  saveQueue[k] = v;
+  setSyncStatus('syncing','Unsaved changes…');
+  if(saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(flushQueue, 1200);
+}
+function getCell(k){ return cellCache[k] ?? null; }
+
+function setSyncStatus(state, text){
+  const dot = document.getElementById('sync-dot');
+  const txt = document.getElementById('sync-text');
+  dot.className = 'sync-dot ' + state;
+  txt.textContent = text;
+  isSynced = state === 'synced';
+}
+
+// ─── TOAST ────────────────────────────────────────────────
+function showToast(msg='✓ Saved'){
+  const t=document.getElementById('save-toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+// ─── AUTH ─────────────────────────────────────────────────
+function doLogin(){
+  const val=document.getElementById('login-user').value;
+  if(!val)return;
+  const [name,role]=val.split('|');
+  currentUser=name; isEditor=role==='editor';
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.getElementById('sync-bar').style.display='flex';
+  const rb=document.getElementById('role-badge');
+  rb.textContent=isEditor?'✏️ Editor':'👁 View Only';
+  rb.className='edit-badge '+(isEditor?'badge-editor':'badge-viewer');
+  startClocks(); buildYearBar(); buildOverview();
+}
+function logout(){
+  currentUser=null; isEditor=false;
+  document.getElementById('app').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('sync-bar').style.display='none';
+  document.getElementById('login-user').value='';
+  ['jay','ann','ray'].forEach(t=>{
+    document.getElementById('months-'+t).innerHTML='';
+    document.getElementById('content-'+t).innerHTML='';
+  });
+}
+document.getElementById('login-user').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+
+// ─── CLOCKS ───────────────────────────────────────────────
+function getLTOffset(){
+  const now=new Date();
+  function lastSun(y,m){let d=new Date(y,m+1,0);while(d.getDay()!==0)d.setDate(d.getDate()-1);return d;}
+  const y=now.getFullYear();
+  return(now>=lastSun(y,2)&&now<lastSun(y,9))?3:2;
+}
+function fmtTime(date,off){
+  const u=date.getTime()+date.getTimezoneOffset()*60000;
+  return new Date(u+off*3600000).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+function fmtDate(date,off){
+  const u=date.getTime()+date.getTimezoneOffset()*60000;
+  return new Date(u+off*3600000).toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
+}
+function startClocks(){
+  const ltOff=getLTOffset(),dst=ltOff===3;
+  document.getElementById('jay-lt').textContent=dst?'03:00–11:00':'02:00–10:00';
+  document.getElementById('ann-lt').textContent=dst?'11:00–19:00':'10:00–18:00';
+  document.getElementById('ray-lt').textContent=dst?'19:00–03:00†':'18:00–02:00†';
+  function tick(){
+    const n=new Date();
+    document.getElementById('clock-mnl').textContent=fmtTime(n,8)+' · '+fmtDate(n,8);
+    document.getElementById('clock-lt').textContent=fmtTime(n,ltOff)+' · '+fmtDate(n,ltOff);
+  }
+  tick(); setInterval(tick,1000);
+}
+
+// ─── CALENDAR ─────────────────────────────────────────────
+function daysInMonth(y,m){return new Date(y,m+1,0).getDate();}
+function buildMonth(y,m){return Array.from({length:daysInMonth(y,m)},(_,i)=>{const d=i+1,dow=new Date(y,m,d).getDay();return{date:d,dow,isWE:dow===0||dow===6};});}
+function workDays(y,m){return buildMonth(y,m).filter(d=>!d.isWE).length;}
+function isToday(y,m,d){const n=new Date();return n.getFullYear()===y&&n.getMonth()===m&&n.getDate()===d;}
+function isPastMonth(y,m){const n=new Date();return y<n.getFullYear()||(y===n.getFullYear()&&m<n.getMonth());}
+function isCurrentMonth(y,m){const n=new Date();return y===n.getFullYear()&&m===n.getMonth();}
+
+// ─── YEAR BAR ─────────────────────────────────────────────
+function buildYearBar(){
+  const div=document.getElementById('year-buttons');div.innerHTML='';
+  CONFIG.ACTIVE_YEARS.forEach(yr=>{
+    const btn=document.createElement('button');
+    btn.className='nav-btn'+(yr===activeYear?' active':'');
+    btn.textContent=yr;
+    btn.onclick=()=>{
+      activeYear=yr;
+      div.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      ['jay','ann','ray'].forEach(t=>{document.getElementById('months-'+t).innerHTML='';document.getElementById('content-'+t).innerHTML='';});
+      buildOverview();
+    };
+    div.appendChild(btn);
+  });
+}
+
+// ─── OVERVIEW ─────────────────────────────────────────────
+function buildOverview(){
+  const months=CONFIG.AVAILABLE_MONTHS[activeYear]||[];
+  const totalWD=months.reduce((a,m)=>a+workDays(activeYear,m),0);
+  document.getElementById('overview-summary').innerHTML=`
+    <div class="summary-card"><div class="val">3</div><div class="lbl">Support Teams</div></div>
+    <div class="summary-card"><div class="val">18</div><div class="lbl">Total Members (5+7+6)</div></div>
+    <div class="summary-card"><div class="val">24/7</div><div class="lbl">Operations</div></div>
+    <div class="summary-card"><div class="val">${months.length}</div><div class="lbl">Months Tracked (${activeYear})</div></div>
+    <div class="summary-card"><div class="val">${totalWD}</div><div class="lbl">Working Days</div></div>
+    <div class="summary-card"><div class="val">${totalWD*8}</div><div class="lbl">Target Hrs/Member</div></div>`;
+  const tbl=document.getElementById('yr-tbl');tbl.innerHTML='';
+  const hdr=document.createElement('thead');
+  hdr.innerHTML='<tr><th>Month</th><th>Work Days</th><th>Calendar Days</th><th>Weekends</th><th>Target Hrs/Member</th><th>Status</th><th>LT Offset</th></tr>';
+  tbl.appendChild(hdr);
+  const tb=document.createElement('tbody');let twk=0,tcd=0;
+  months.forEach(m=>{
+    const cd=daysInMonth(activeYear,m),wd=workDays(activeYear,m);twk+=wd;tcd+=cd;
+    const lt=[2,9].includes(m)?'⚠️ DST change':(m>=3&&m<=8?'UTC+3 (summer)':'UTC+2 (winter)');
+    const past=isPastMonth(activeYear,m),cur=isCurrentMonth(activeYear,m);
+    const status=past?'<span style="color:var(--gray)">✔ Done</span>':cur?'<span style="color:var(--yellow)">▶ Current</span>':'<span style="color:var(--gray2)">— Upcoming</span>';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td style="text-align:left;padding-left:8px;color:${cur?'var(--yellow)':'var(--cyan)'};font-weight:600">${MONTHS_FULL[m]}</td><td>${wd}</td><td>${cd}</td><td>${cd-wd}</td><td class="td-total">${wd*8}</td><td>${status}</td><td style="color:var(--yellow);font-size:10px">${lt}</td>`;
+    tb.appendChild(tr);
+  });
+  const tf=document.createElement('tr');tf.className='td-total-row';
+  tf.innerHTML=`<td style="font-weight:700;text-align:left;padding-left:8px">TOTAL ${activeYear}</td><td>${twk}</td><td>${tcd}</td><td>${tcd-twk}</td><td class="td-total">${twk*8}</td><td></td><td></td>`;
+  tb.appendChild(tf);tbl.appendChild(tb);
+}
+
+// ─── CELL HELPERS ─────────────────────────────────────────
+function renderCellVal(td,val){
+  td.className=td.className.replace(/\btd-rd\b|\btd-tb\b|\btd-md\b|\btd-ns\b|\btd-ot\b/g,'').trim();
+  const v=String(val).toUpperCase();
+  if(v==='RD')td.classList.add('td-rd');
+  else if(v==='TB')td.classList.add('td-tb');
+  else if(v==='MD')td.classList.add('td-md');
+  else if(v==='NS')td.classList.add('td-ns');
+  else if(v==='OT')td.classList.add('td-ot');
+  td.textContent=val;
+}
+function makeEditable(td,key,def){
+  if(!isEditor)return;
+  td.classList.add('editable');td.title='Click to edit';
+  td.addEventListener('click',function(e){
+    if(td.querySelector('input'))return;
+    const inp=document.createElement('input');inp.type='text';inp.className='cell-input';
+    inp.value=getCell(key)??def;td.textContent='';td.appendChild(inp);inp.focus();inp.select();
+    function commit(){const v=inp.value.trim();saveCell(key,v);renderCellVal(td,v);}
+    inp.addEventListener('blur',commit);
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter')inp.blur();if(e.key==='Escape'){td.textContent=getCell(key)??def;inp.remove();}});
+    e.stopPropagation();
+  });
+}
+function makeTextEditable(td,key,def){
+  if(!isEditor)return;
+  td.classList.add('editable-text');td.title='Click to edit';
+  td.addEventListener('click',function(){
+    if(td.querySelector('textarea'))return;
+    const ta=document.createElement('textarea');ta.className='cell-ta';
+    ta.value=td.textContent;td.textContent='';td.appendChild(ta);ta.focus();
+    function c(){saveCell(key,ta.value);td.textContent=ta.value;}
+    ta.addEventListener('blur',c);
+    ta.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey)ta.blur();});
+  });
+}
+
+// ─── BUILD MONTH PANEL ────────────────────────────────────
+function buildMonthPanel(teamKey,monthIdx,year){
+  const team=TEAMS[teamKey],days=buildMonth(year,monthIdx),wd=workDays(year,monthIdx);
+  const tgt=wd*8,mn=MONTHS_FULL[monthIdx];
+  const ltOff=getLTOffset(),dst=ltOff===3;
+  const ltShifts={jay:dst?'03:00–11:00':'02:00–10:00',ann:dst?'11:00–19:00':'10:00–18:00',ray:dst?'19:00–03:00†':'18:00–02:00†'};
+  const lc=LCOL[teamKey];
+  const wrap=document.createElement('div');
+
+  // TIMESHEET
+  const sw=document.createElement('div');sw.className='section-wrap';
+  const stitle=document.createElement('div');stitle.className='section-title';
+  stitle.style.background=`linear-gradient(90deg,${GRAD[teamKey]})`;
+  stitle.textContent=`${team.icon} ${team.label} — ${mn} ${year} | 🇵🇭 ${team.shift} | 🇱🇹 ${ltShifts[teamKey]}`;
+  sw.appendChild(stitle);
+
+  const ox=document.createElement('div');ox.className='overflow-x';
+  const tbl=document.createElement('table');
+  const thead=document.createElement('thead');
+  const hr=document.createElement('tr');
+  hr.innerHTML=`<th style="min-width:70px">Member</th>`;
+  days.forEach(d=>{hr.innerHTML+=`<th ${d.isWE?'style="color:var(--gray)"':''}>${DLBL[d.dow]}</th>`;});
+  hr.innerHTML+=`<th>Shift</th><th>Month Total</th>`;
+  thead.appendChild(hr);tbl.appendChild(thead);
+
+  const tbody=document.createElement('tbody');
+  const dr=document.createElement('tr');dr.className='td-total-row';
+  dr.innerHTML=`<td class="td-name" style="color:var(--gray);font-size:10px">DATE</td>`;
+  days.forEach(d=>{
+    const tc=isToday(year,monthIdx,d.date)?' td-today':'';
+    dr.innerHTML+=`<td class="${d.dow===0?'td-date td-sun':d.dow===6?'td-date td-sat':'td-date'}${tc}">${d.date}</td>`;
+  });
+  dr.innerHTML+=`<td>8h</td><td class="td-total">${tgt}h</td>`;
+  tbody.appendChild(dr);
+
+  team.members.forEach(name=>{
+    const tr=document.createElement('tr');
+    const ntd=document.createElement('td');ntd.className='td-name';ntd.style.color=team.color;ntd.textContent=name;tr.appendChild(ntd);
+    let mTotal=0;
+    days.forEach(d=>{
+      const ck=`${year}_${teamKey}_${monthIdx}_${name}_${d.date}`;
+      const def=d.isWE?'RD':'8';
+      const disp=getCell(ck)??def;
+      const td=document.createElement('td');
+      if(d.dow===0)td.classList.add('td-sun');else if(d.dow===6)td.classList.add('td-sat');
+      if(isToday(year,monthIdx,d.date))td.classList.add('td-today');
+      renderCellVal(td,disp);makeEditable(td,ck,disp);tr.appendChild(td);
+      const n=parseFloat(disp);
+      if(!isNaN(n)&&!['RD','TB','MD','NS','OT'].includes(String(disp).toUpperCase()))mTotal+=n;
+    });
+    const s=document.createElement('td');s.textContent='8h';tr.appendChild(s);
+    const tt=document.createElement('td');tt.className='td-total';
+    tt.textContent=mTotal>0?mTotal.toFixed(2).replace(/\.00$/,'')+'h':'—';tr.appendChild(tt);
+    tbody.appendChild(tr);
+  });
+
+  const totR=document.createElement('tr');totR.className='td-total-row';
+  totR.innerHTML=`<td class="td-name">Daily Total</td>`;
+  days.forEach(d=>{totR.innerHTML+=`<td>${d.isWE?'—':team.members.length*8}</td>`;});
+  totR.innerHTML+=`<td></td><td class="td-total">${tgt*team.members.length}h</td>`;
+  tbody.appendChild(totR);tbl.appendChild(tbody);ox.appendChild(tbl);sw.appendChild(ox);
+
+  const nb=document.createElement('div');nb.className='notes-box';
+  const past=isPastMonth(year,monthIdx),cur=isCurrentMonth(year,monthIdx);
+  const statusNote=past?'<span style="color:var(--gray)">✔ Completed month</span>':cur?'<span style="color:var(--yellow)">▶ Current — today highlighted</span>':'<span style="color:var(--gray2)">— Upcoming</span>';
+  nb.innerHTML=`<span>RD</span>=Rest Day &nbsp;|&nbsp;<span>TB</span>=To Be Logged &nbsp;|&nbsp;<span>MD</span>=Missed Day &nbsp;|&nbsp;<span>NS</span>=No Show &nbsp;|&nbsp;<span>OT</span>=Overtime &nbsp;|&nbsp;Target:<span>${tgt}h</span>(${wd}d×8h) &nbsp;|&nbsp;${statusNote} &nbsp;|&nbsp;${isEditor?'<span style="color:var(--green)">✏️ Click any cell to edit — saves to Google Sheets</span>':'<span style="color:var(--gray)">👁 View only</span>'}`;
+  sw.appendChild(nb);wrap.appendChild(sw);
+
+  // LEAVES + WEEKEND BACKUP
+  const sg=document.createElement('div');sg.className='sub-grid';
+
+  const ld=document.createElement('div');
+  const lsl=document.createElement('span');lsl.className='sub-label';lsl.style.background=lc;
+  lsl.textContent=`📅 Leaves / Missed Days — ${mn} ${year}`;ld.appendChild(lsl);
+  const lt=document.createElement('table');
+  lt.innerHTML=`<thead><tr><th>Name</th><th>Date/Day</th><th>Reason</th><th>Covered By</th><th>Swap Details</th><th>Lost Hrs</th></tr></thead>`;
+  const ltb=document.createElement('tbody');
+  for(let i=0;i<6;i++){
+    const tr=document.createElement('tr');
+    ['','','','','',''].forEach((_,ci)=>{
+      const td=document.createElement('td');td.style.textAlign='left';td.style.paddingLeft='5px';
+      const lk=`${year}_${teamKey}_${monthIdx}_leave_${i}_${ci}`;
+      td.textContent=getCell(lk)??'';makeTextEditable(td,lk,'');tr.appendChild(td);
+    });
+    ltb.appendChild(tr);
+  }
+  lt.appendChild(ltb);
+  const lf=document.createElement('tfoot');lf.innerHTML='<tr class="lost-total"><td colspan="5" style="text-align:right;padding-right:6px">Total Lost Hours</td><td>—</td></tr>';
+  lt.appendChild(lf);ld.appendChild(lt);sg.appendChild(ld);
+
+  const bd=document.createElement('div');
+  const bsl=document.createElement('span');bsl.className='sub-label';bsl.style.background=lc;
+  bsl.textContent=`🔄 Weekend Back-up OT (12NN–4PM) — ${mn} ${year}`;bd.appendChild(bsl);
+  const bt=document.createElement('table');
+  bt.innerHTML=`<thead><tr><th>Date</th><th>Day</th><th>Support Name</th><th>Status</th></tr></thead>`;
+  const btb=document.createElement('tbody');
+  days.filter(d=>d.isWE).forEach(d=>{
+    const dn=d.dow===0?'Sunday':'Saturday';
+    const tr=document.createElement('tr');
+    [String(d.date),dn,'',''].forEach((v,ci)=>{
+      const td=document.createElement('td');
+      const bk=`${year}_${teamKey}_${monthIdx}_wknd_${d.date}_${ci}`;
+      const sv=getCell(bk);td.textContent=sv??v;
+      if(ci===2&&td.textContent==='Available')td.className='avail-cell';
+      if(ci===3&&['COMPLETED','Done'].includes(td.textContent))td.className='done-cell';
+      if(ci>=2)makeTextEditable(td,bk,v);
+      tr.appendChild(td);
+    });
+    btb.appendChild(tr);
+  });
+  bt.appendChild(btb);bd.appendChild(bt);sg.appendChild(bd);wrap.appendChild(sg);
+
+  // MEETINGS
+  const ms=document.createElement('div');ms.className='section-wrap';ms.style.marginTop='14px';
+  const mst=document.createElement('div');mst.className='section-title';
+  mst.style.background=`linear-gradient(90deg,${GRAD[teamKey]})`;
+  mst.textContent=`📣 ${team.label} — Meetings — ${mn} ${year}`;ms.appendChild(mst);
+  const mt=document.createElement('table');
+  mt.innerHTML=`<thead><tr><th style="width:90px">Date</th><th style="width:80px">🇵🇭 MNL</th><th style="width:80px">🇱🇹 LT</th><th style="width:130px">Agenda / c/o</th><th>Meeting Highlights</th><th style="width:100px">Attendance</th></tr></thead>`;
+  const mtb=document.createElement('tbody');
+  for(let i=0;i<3;i++){
+    const tr=document.createElement('tr');
+    ['','','','','',''].forEach((_,ci)=>{
+      const td=document.createElement('td');td.style.verticalAlign='top';td.style.padding='5px';
+      if(ci===4)td.className='meeting-td';
+      const mk=`${year}_${teamKey}_${monthIdx}_meet_${i}_${ci}`;
+      td.textContent=getCell(mk)??'';makeTextEditable(td,mk,'');tr.appendChild(td);
+    });
+    mtb.appendChild(tr);
+  }
+  mt.appendChild(mtb);ms.appendChild(mt);wrap.appendChild(ms);
+  return wrap.outerHTML;
+}
+
+// ─── RENDER TEAM TABS ─────────────────────────────────────
+function renderTeam(teamKey){
+  const bar=document.getElementById('months-'+teamKey);
+  const cont=document.getElementById('content-'+teamKey);
+  bar.innerHTML='';cont.innerHTML='';
+  const months=CONFIG.AVAILABLE_MONTHS[activeYear]||[];
+  const now=new Date();
+  const curM=activeYear===now.getFullYear()?now.getMonth():-1;
+  const defaultM=months.includes(curM)?curM:months[0];
+  months.forEach(m=>{
+    const btn=document.createElement('button');
+    const past=isPastMonth(activeYear,m),cur=isCurrentMonth(activeYear,m);
+    btn.className='month-btn'+(m===defaultM?' active':'')+(past?' past':'')+(cur?' current':'');
+    btn.textContent=MONTHS_SHORT[m];
+    btn.onclick=()=>{
+      bar.querySelectorAll('.month-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+      cont.querySelectorAll('.month-panel').forEach(p=>p.classList.remove('active'));
+      const panel=document.getElementById(`mp-${teamKey}-${activeYear}-${m}`);
+      if(panel.dataset.rendered==='false'){panel.innerHTML=buildMonthPanel(teamKey,m,activeYear);panel.dataset.rendered='true';}
+      panel.classList.add('active');
+    };
+    bar.appendChild(btn);
+  });
+  months.forEach(m=>{
+    const p=document.createElement('div');
+    p.className='month-panel'+(m===defaultM?' active':'');
+    p.id=`mp-${teamKey}-${activeYear}-${m}`;
+    p.dataset.rendered='false';
+    if(m===defaultM){p.innerHTML=buildMonthPanel(teamKey,m,activeYear);p.dataset.rendered='true';}
+    cont.appendChild(p);
+  });
+}
+
+function showTeam(id,btn){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  btn.classList.add('active');
+  if(['jay','ann','ray'].includes(id))renderTeam(id);
+}
+
+// ─── INIT — load from Google Sheets first ────────────────
+(async()=>{
+  document.getElementById('load-text').textContent='Connecting to Google Sheets…';
+  const ok=await sheetGet();
+  document.getElementById('load-overlay').classList.add('hidden');
+  if(ok){
+    document.getElementById('load-text').textContent='Loaded!';
+  }
+  document.getElementById('login-screen').style.display='flex';
+})();
+</script>
+</body>
+</html>
